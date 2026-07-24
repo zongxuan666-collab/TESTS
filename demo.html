@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高中數學 AI 一條龍產製系統</title>
+    
+    <!-- 載入 MathJax 數學公式渲染引擎 -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 800px;
+        }
+        h1 {
+            color: #1a73e8;
+            border-bottom: 2px solid #e1e8ed;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label.section-title {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            background-color: #fafafa;
+        }
+        .checkbox-group {
+            display: flex;
+            gap: 15px;
+            background-color: #fafafa;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+        .checkbox-label {
+            font-weight: normal;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            color: #333;
+        }
+        .checkbox-label input {
+            margin-right: 6px;
+            width: 16px;
+            height: 16px;
+        }
+        .btn-primary {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #1557b0;
+        }
+        #loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+            font-weight: bold;
+            color: #ff9800;
+        }
+        #result-area {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .tag {
+            display: inline-block;
+            background-color: #e3f2fd;
+            color: #0277bd;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            margin-right: 8px;
+            margin-bottom: 15px;
+        }
+        .content-section {
+            background-color: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #4caf50;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-radius: 4px;
+        }
+        .content-section h4 {
+            margin-top: 0;
+            color: #2e7d32;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+        .export-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            border-top: 1px dashed #ccc;
+            padding-top: 15px;
+        }
+        .btn-export {
+            background-color: #fff;
+            color: #1a73e8;
+            border: 1px solid #1a73e8;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-export:hover {
+            background-color: #e8f0fe;
+        }
+        .btn-export.pdf {
+            color: #d32f2f;
+            border-color: #d32f2f;
+        }
+        .btn-export.pdf:hover {
+            background-color: #ffebee;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📐 數學 AI 一條龍產製系統</h1>
+    <p>請選擇您要生成的教材規格，系統將自動調用知識庫與 AI 代理進行生成。</p>
+
+    <div class="form-group">
+        <label class="section-title" for="scope">📚 內容範圍：</label>
+        <select id="scope">
+            <option value="數學(一)">數學(一)</option>
+            <option value="數學(二)">數學(二)</option>
+            <option value="數學(三A)">數學(三A)</option>
+            <option value="數學(三B)">數學(三B)</option>
+            <option value="數學(四A)">數學(四A)</option>
+            <option value="數學(四B)">數學(四B)</option>
+            <option value="學測總複習數學A">學測總複習數學A</option>
+            <option value="學測總複習數學B">學測總複習數學B</option>
+            <option value="選修數學甲(上)">選修數學甲(上)</option>
+            <option value="選修數學乙(上)">選修數學乙(上)</option>
+            <option value="選修數學甲(下)">選修數學甲(下)</option>
+            <option value="選修數學乙(下)">選修數學乙(下)</option>
+            <option value="分科總複習數學甲">分科總複習數學甲</option>
+            <option value="分科總複習數學乙">分科總複習數學乙</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label class="section-title" for="productType">📦 產品類型：</label>
+        <select id="productType">
+            <option value="課本">課本</option>
+            <option value="習作">習作</option>
+            <option value="講義">講義</option>
+            <option value="評量">評量</option>
+            <option value="題庫">題庫</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label class="section-title">📄 內容類型 (可複選)：</label>
+        <div class="checkbox-group">
+            <label class="checkbox-label"><input type="checkbox" value="內文" class="content-cb" checked> 內文</label>
+            <label class="checkbox-label"><input type="checkbox" value="重點" class="content-cb"> 重點</label>
+            <label class="checkbox-label"><input type="checkbox" value="題目" class="content-cb"> 題目</label>
+        </div>
+    </div>
+
+    <button class="btn-primary" onclick="generateContent()">✨ 啟動 AI 生成</button>
+
+    <div id="loading">⏳ AI 代理正在讀取課綱與生成內容，請稍候...</div>
+
+    <div id="result-area">
+        <div id="result-tags"></div>
+        <h3 id="result-title" style="margin-top: 0; color: #333;">生成預覽</h3>
+        <div id="result-content" style="line-height: 1.6;"></div>
+        
+        <!-- 新增的匯出按鈕區塊 -->
+        <div class="export-actions">
+            <button class="btn-export" onclick="exportFile('Word')">📄 產出 Word 檔</button>
+            <button class="btn-export pdf" onclick="exportFile('PDF')">📕 產出 PDF 檔</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function generateContent() {
+        const scope = document.getElementById('scope').value;
+        const productType = document.getElementById('productType').value;
+        const checkboxes = document.querySelectorAll('.content-cb:checked');
+        const selectedTypes = Array.from(checkboxes).map(cb => cb.value);
+
+        if (selectedTypes.length === 0) {
+            alert("請至少勾選一種「內容類型」！");
+            return;
+        }
+
+        document.getElementById('result-area').style.display = 'none';
+        document.getElementById('loading').style.display = 'block';
+
+        setTimeout(() => {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('result-area').style.display = 'block';
+
+            let tagsHtml = `<span class="tag">${scope}</span><span class="tag">${productType}</span>`;
+            selectedTypes.forEach(type => {
+                tagsHtml += `<span class="tag">${type}</span>`;
+            });
+            document.getElementById('result-tags').innerHTML = tagsHtml;
+
+            let simulatedContent = "";
+            
+            if (selectedTypes.includes("內文")) {
+                simulatedContent += `
+                <div class="content-section">
+                    <h4>📖 【內文】概念引導</h4>
+                    <p>在我們的日常生活中，常常會遇到需要同時考慮「大小」與「方向」的物理量。例如：颱風的風速是每秒 30 公尺，方向是朝西北方。像這種具有方向性的量，我們就稱為「向量」。本章節我們將探討向量的加減法與內積運算...</p>
+                </div>`;
+            } 
+            
+            if (selectedTypes.includes("重點")) {
+                simulatedContent += `
+                <div class="content-section">
+                    <h4>📌 【重點】公式與口訣整理</h4>
+                    <p>1. <strong>向量定義：</strong>具備大小與方向的量。<br>
+                    2. <strong>向量內積公式：</strong> $\\vec{a} \\cdot \\vec{b} = |\\vec{a}| |\\vec{b}| \\cos\\theta$<br>
+                    3. <strong>坐標化內積：</strong> $\\vec{a} \\cdot \\vec{b} = x_1x_2 + y_1y_2$</p>
+                    <p style="color: #666; font-size: 12px;"><em>📝 編輯備註：以上重點已自動對齊 ${scope} 課綱。</em></p>
+                </div>`;
+            } 
+            
+            if (selectedTypes.includes("題目")) {
+                simulatedContent += `
+                <div class="content-section">
+                    <h4>📝 【題目】精選計算與詳解</h4>
+                    <p><strong>題目：</strong>已知平面上兩向量 $\\vec{u} = (3, 4)$ 與 $\\vec{v} = (k, -2)$ 互相垂直，求實數 $k$ 的值為何？</p>
+                    <p><strong>【AI 詳解】</strong><br>
+                    因為兩向量互相垂直，所以它們的內積為 0。<br>
+                    $\\vec{u} \\cdot \\vec{v} = 3 \\times k + 4 \\times (-2) = 0$<br>
+                    $3k - 8 = 0 \\implies k = \\frac{8}{3}$</p>
+                </div>`;
+            }
+
+            document.getElementById('result-content').innerHTML = simulatedContent;
+
+            // 關鍵更新：呼叫 MathJax 重新渲染剛剛動態生成的數學公式
+            if (window.MathJax) {
+                MathJax.typesetPromise([document.getElementById('result-content')]).catch(function (err) {
+                    console.error('MathJax 渲染失敗：', err.message);
+                });
+            }
+
+        }, 1500);
+    }
+
+    // 模擬匯出檔案的功能
+    function exportFile(type) {
+        alert("🔄 系統正在呼叫 Docgen Agent...\n即將為您下載已排版好的 " + type + " 檔案！");
+    }
+</script>
+
+</body>
+</html>
